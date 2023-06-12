@@ -4,9 +4,9 @@ import sys
 
 from functools import wraps
 
-from intpy.parser_params import get_params
-from intpy.environment import init_env
-from intpy.logger.log import debug
+from speedupy.parser_params import get_params
+from speedupy.environment import init_env
+from speedupy.logger.log import debug
 
 g_argsp_v, g_argsp_no_cache = get_params()
 
@@ -33,8 +33,8 @@ if g_argsp_no_cache:
         return f
 else:
     init_env()
-    from intpy.data_access import get_cache_data, create_entry, salvarNovosDadosBanco
-    from intpy.function_graph import create_experiment_function_graph, get_source_code_executed
+    from speedupy.data_access import get_cache_data, create_entry, salvarNovosDadosBanco
+    from speedupy.function_graph import create_experiment_function_graph, get_source_code_executed
 
     g_user_script_graph = None
 
