@@ -3,9 +3,9 @@ import hashlib
 import os
 import threading
 
-from intpy.parser_params import get_params
-from intpy.banco import Banco
-from intpy.logger.log import debug, warn
+from speedupy.parser_params import get_params
+from speedupy.banco import Banco
+from speedupy.logger.log import debug, warn
 
 #from . import CONEXAO_BANCO
 
