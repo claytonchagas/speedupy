@@ -2,6 +2,8 @@ import pickle
 import hashlib
 import os
 import threading
+import mmh3
+import xxhash
 
 from speedupy.parser_params import get_params
 from speedupy.banco import Banco
@@ -11,7 +13,7 @@ from speedupy.logger.log import debug, warn
 
 # Opening database connection and creating select query to the database
 # to populate DATA_DICTIONARY
-g_argsp_v, g_argsp_no_cache = get_params()
+g_argsp_v, g_argsp_no_cache, g_argsp_hash = get_params()
 CONEXAO_BANCO = None
 if(g_argsp_v != ['v01x']):
     CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
@@ -45,7 +47,12 @@ def _remove(id):
 
 
 def _get_id(fun_args, fun_source):
-    return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
+    if g_argsp_hash[0] == 'md5':
+        return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
+    elif g_argsp_hash[0] == 'murmur':
+        return hex(mmh3.hash128((str(fun_args) + fun_source).encode('utf')))[2:]
+    elif g_argsp_hash[0] == 'xxhash':
+        return xxhash.xxh128_hexdigest((str(fun_args) + fun_source).encode('utf'))
 
 
 def _get_file_name(id):
