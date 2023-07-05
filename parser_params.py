@@ -23,6 +23,8 @@ def glossary_msg():
 def get_params():
     versions = ['v01x', '1d-ow', 'v021x', '1d-ad', 'v022x', '2d-ad', 'v023x', '2d-ad-t', 'v024x', '2d-ad-f', 'v025x', '2d-ad-ft', 'v026x', '2d-lz', 'v027x']
 
+    hashes = ['md5', 'murmur', 'xxhash']
+
     intpy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
 
     intpy_arg_parser.add_argument('args',
@@ -37,7 +39,15 @@ def get_params():
                                    metavar='',
                                    nargs=1,
                                    type=str, 
-                                   help='SpeedUpy\'s mechanism version: choose one of the following options: '+', '.join(versions))
+                                   help='IntPy\'s mechanism version: choose one of the following options: '+', '.join(versions))
+    
+    intpy_arg_parser.add_argument('-H',
+                                  '--hash',
+                                   choices=hashes,
+                                   metavar='',
+                                   nargs=1,
+                                   default=['md5'],
+                                   help='IntPy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
     
     intpy_arg_parser.add_argument('-g',
                                   '--glossary',
@@ -51,6 +61,8 @@ def get_params():
                                   action="store_true",
                                   help='SpeedUpy\'s disable cache')
 
+
+
     args = intpy_arg_parser.parse_args()
 
     if args.glossary:
@@ -60,7 +72,9 @@ def get_params():
 
     argsp_no_cache = args.no_cache
 
-    return argsp_v, argsp_no_cache
+    argsp_hash = args.hash
+
+    return argsp_v, argsp_no_cache, argsp_hash
 
 """
 if argsp.version == ['1d-ow'] or argsp.version == ['v021x']:
