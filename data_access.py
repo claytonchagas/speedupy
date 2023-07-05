@@ -5,9 +5,9 @@ import threading
 import mmh3
 import xxhash
 
-from parser_params import get_params
-from banco import Banco
-from logger.log import debug, warn
+from speedupy.parser_params import get_params
+from speedupy.banco import Banco
+from speedupy.logger.log import debug, warn
 
 #from . import CONEXAO_BANCO
 
