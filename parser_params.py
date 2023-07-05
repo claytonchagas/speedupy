@@ -25,6 +25,8 @@ def get_params():
 
     hashes = ['md5', 'murmur', 'xxhash']
 
+    marshals = ['pickle']
+
     intpy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
 
     intpy_arg_parser.add_argument('args',
@@ -39,6 +41,7 @@ def get_params():
                                    metavar='',
                                    nargs=1,
                                    type=str, 
+                                   default=['v023x'],
                                    help='IntPy\'s mechanism version: choose one of the following options: '+', '.join(versions))
     
     intpy_arg_parser.add_argument('-H',
@@ -47,7 +50,7 @@ def get_params():
                                    metavar='',
                                    nargs=1,
                                    default=['md5'],
-                                   help='IntPy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
+                                   help='SpeedUpy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
     
     intpy_arg_parser.add_argument('-g',
                                   '--glossary',
@@ -61,7 +64,13 @@ def get_params():
                                   action="store_true",
                                   help='SpeedUpy\'s disable cache')
 
-
+    intpy_arg_parser.add_argument('-m',
+                                  '--marshalling',
+                                   choices=marshals,
+                                   metavar='',
+                                   nargs=1,
+                                   default=['pickle'],
+                                   help='SpeedUpy\'s mechanism of marshalling: choose one of the following options: '+', '.join(hashes))
 
     args = intpy_arg_parser.parse_args()
 
