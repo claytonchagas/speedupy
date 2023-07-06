@@ -1,5 +1,8 @@
+import time
 import sys
+
 from intpy import deterministic,initialize_intpy
+
 
 @deterministic
 def fib(n):
@@ -12,6 +15,9 @@ def fib(n):
 def main(n):
     print(fib(n))
 
+
 if __name__ =='__main__':
     n = int(sys.argv[1])
+    start = time.perf_counter()
     main(n)
+    print(time.perf_counter()-start)
