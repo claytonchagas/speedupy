@@ -8,15 +8,15 @@ from parser_params import get_params
 from environment import init_env
 from logger.log import debug
 
-g_argsp_v, g_argsp_no_cache, g_argsp_hash = get_params()
+g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
 
-print(g_argsp_v)
+print(g_argsp_m)
 
 print(g_argsp_no_cache)
 
 print(g_argsp_hash)
 
-if g_argsp_v == None and not g_argsp_no_cache:
+if g_argsp_m == None and not g_argsp_no_cache:
     print("Error: enter the \"-h\" parameter on the command line after \"python script.py\" to see usage instructions")
     sys.exit()
 
@@ -49,7 +49,7 @@ else:
             def execution(*method_args, **method_kwargs):
                 _initialize_cache(user_script_path)
                 f(*method_args, **method_kwargs)
-                if g_argsp_v != ['v01x']:
+                if g_argsp_m != ['v01x']:
                     _salvarCache()
             return execution
         return decorator
@@ -61,7 +61,7 @@ else:
 
     def _get_cache(func, args):
         fun_source = get_source_code_executed(func, g_user_script_graph)
-        return get_cache_data(func.__name__, args, fun_source, g_argsp_v)
+        return get_cache_data(func.__name__, args, fun_source, g_argsp_m)
 
 
     def _cache_exists(cache):
@@ -72,7 +72,7 @@ else:
         debug("starting caching data for {0}({1})".format(func.__name__, fun_args))
         start = time.perf_counter()
         fun_source = get_source_code_executed(func, g_user_script_graph)
-        create_entry(func.__name__, fun_args, fun_return, fun_source, g_argsp_v)
+        create_entry(func.__name__, fun_args, fun_return, fun_source, g_argsp_m)
         end = time.perf_counter()
         debug("caching {0} took {1}".format(func.__name__, end - start))
 
@@ -130,4 +130,4 @@ else:
 
 
     def _salvarCache():
-        salvarNovosDadosBanco(g_argsp_v)
+        salvarNovosDadosBanco(g_argsp_m)

@@ -13,9 +13,9 @@ from logger.log import debug, warn
 
 # Opening database connection and creating select query to the database
 # to populate DATA_DICTIONARY
-g_argsp_v, g_argsp_no_cache, g_argsp_hash = get_params()
+g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
 CONEXAO_BANCO = None
-if(g_argsp_v != ['v01x']):
+if(g_argsp_m != ['v01x']):
     CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
 DATA_DICTIONARY = {}
 NEW_DATA_DICTIONARY = {}
@@ -287,8 +287,8 @@ def salvarNovosDadosBanco(argsp_v):
     CONEXAO_BANCO.fecharConexao()
 
 
-if(g_argsp_v == ['1d-ad'] or g_argsp_v == ['v022x']
-    or g_argsp_v == ['2d-ad'] or g_argsp_v == ['v023x']):
+if(g_argsp_m == ['1d-ad'] or g_argsp_m == ['v022x']
+    or g_argsp_m == ['2d-ad'] or g_argsp_m == ['v023x']):
     def _populate_cached_data_dictionary():
         list_of_ipcache_files = CONEXAO_BANCO.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
         for ipcache_file in list_of_ipcache_files:
@@ -299,7 +299,7 @@ if(g_argsp_v == ['1d-ad'] or g_argsp_v == ['v022x']
             else:
                 DATA_DICTIONARY[ipcache_file] = result
     _populate_cached_data_dictionary()
-elif(g_argsp_v == ['2d-ad-t'] or g_argsp_v == ['v024x']):
+elif(g_argsp_m == ['2d-ad-t'] or g_argsp_m == ['v024x']):
     def _populate_cached_data_dictionary():
         db_connection = Banco(os.path.join(".intpy", "intpy.db"))
         list_of_ipcache_files = db_connection.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
