@@ -5,29 +5,33 @@ import sys
 def usage_msg():
     return "\nIntPy's Python command line arguments help:\n\n\
 To run your experiment with IntPy use:\n\
-$ python "+str(sys.argv[0])+" program_arguments [-h] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-g, --glossary] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
+$ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
 To run in the IntPy DEBUG mode use:\n\
-$ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-g, --glossary] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
+$ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
 "
 def glossary_msg():
     return hashes_msg() + marshalling_msg() + storage_msg() + memory_msg()
 
 def hashes_msg():
-    return "\nhash:\n\
-    Hashes:\n\
-    =>md5   : \n\
-    =>murmur: \n\
-    =>xxhash: \n\
+    return "\nHashes: \n\
+    =>md5   : is a cryptographic hash fuction with a better collision resistence and lower performance compared to the others.\n\
+    =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
+    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
+    usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\
     \n"
 def marshalling_msg():
     return "Marshalling:\n\
-    =>Pickle:\n\n"
+    =>Pickle:\n\
+    usage: $ python "+str(sys.argv[0])+" program_arguments -M|--marshalling options\n\
+    \n"
 
 def storage_msg():
     return "Storage:\n\
-    =>db-file:\n\
-    =>db     :\n\
-    =>file   :\n\n"
+    =>db-file: use database and file to store data.\n\
+    =>db     : use database to store data\n\
+    =>file   : use file to store data.\n\
+    usage: $ python "+str(sys.argv[0])+" program_arguments -s|--storage options\
+    \n"
 
 def memory_msg():
     return "Memory forms:\n\
@@ -38,8 +42,10 @@ def memory_msg():
     =>2d-ad-t : two dicionaries (2d), all data loaded at the begining with a thread (ad-t), 4th implementation of dictionary (uses 2 dictionaries): at the begining of the execution a thread is started to load all the data cached in the database to the dictionary DATA_DICTIONARY. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. Only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution but it is possible that some elements in NEW_DATA_DICTIONARY are already in the database due to the concurrent execution of the experiment and the thread that populates DATA_DICTIONARY.\n\
     =>2d-ad-f : two dicionaries (2d), all data loaded at the begining of a function(ad-f), 5th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results are then stored in the dictionary DATA_DICTIONARY. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
     =>2d-ad-ft: two dicionaries (2d), all data loaded at the begining of a function with a thread (ad-ft), 6th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results of the query are stored in the dictionary DATA_DICTIONARY by a thread. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
-    =>2d-lz   : two dicionaries (2d), lazy mode (lz), 7th implementation of dictionary (uses 2 dictionaries): new data is added to DATA_DICTIONARY when cache hit occurs (LAZY approach) and new data is added to NEW_DATA_DICTIONARY when cache miss occur and the function decorated with @deterministic is executed.\n\n"
-
+    =>2d-lz   : two dicionaries (2d), lazy mode (lz), 7th implementation of dictionary (uses 2 dictionaries): new data is added to DATA_DICTIONARY when cache hit occurs (LAZY approach) and new data is added to NEW_DATA_DICTIONARY when cache miss occur and the function decorated with @deterministic is executed.\n\
+    usage: $ python "+str(sys.argv[0])+" program_arguments -m|--memory options\n\
+    \n"
+    
 
 def get_params():
     memories = ['help','ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
@@ -110,6 +116,7 @@ def get_params():
     
     if args.glossary:
         print(glossary_msg())
+        sys.exit()
     
     argsp_m = args.memory
 
