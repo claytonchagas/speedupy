@@ -1,9 +1,11 @@
 import pickle
+import json
+import jsonpickle
+import h5py
 import hashlib
 import os
 import threading
-import mmh3
-import xxhash
+import numpy as np
 
 from parser_params import get_params
 from banco import Banco
@@ -13,15 +15,16 @@ from logger.log import debug, warn
 
 # Opening database connection and creating select query to the database
 # to populate DATA_DICTIONARY
-g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
+g_argsp_v, g_argsp_no_cache, serialization_method = get_params()
 CONEXAO_BANCO = None
-if(g_argsp_m != ['v01x']):
+
+if(g_argsp_v != ['v01x']):
     CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+
 DATA_DICTIONARY = {}
 NEW_DATA_DICTIONARY = {}
 FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
 CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
-
 
 def _save(file_name):
     CONEXAO_BANCO.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(cache_file) VALUES (?)", (file_name,))
@@ -47,12 +50,7 @@ def _remove(id):
 
 
 def _get_id(fun_args, fun_source):
-    if g_argsp_hash[0] == 'md5':
-        return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
-    elif g_argsp_hash[0] == 'murmur':
-        return hex(mmh3.hash128((str(fun_args) + fun_source).encode('utf')))[2:]
-    elif g_argsp_hash[0] == 'xxhash':
-        return xxhash.xxh128_hexdigest((str(fun_args) + fun_source).encode('utf'))
+    return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
 
 
 def _get_file_name(id):
@@ -65,22 +63,52 @@ def _autofix(id):
     _remove(_get_file_name(id))
     debug("environment fixed")
 
-
 def _deserialize(id):
     try:
-        with open(".intpy/cache/{0}".format(_get_file_name(id)), 'rb') as file:
-            return pickle.load(file)
+        filename = ".intpy/cache/{0}".format(_get_file_name(id))
+        if serialization_method == 'pickle':
+            with open(filename, 'rb') as file:
+                return pickle.load(file)
+        elif serialization_method == 'simplejson':
+            with open(filename, 'r', encoding='latin1') as file:
+                return json.loads(file.read())
+        elif serialization_method == 'picklejson':
+            with open(filename, 'r', encoding='latin1') as file:
+                return jsonpickle.decode(file.read())
+        elif serialization_method == 'HDF5':
+            with h5py.File(filename, 'r') as file:
+                return file['dataset'][()]
+            
     except FileNotFoundError as e:
         warn("corrupt environment. Cache reference exists for a function in database but there is no file for it in cache folder.\
             Have you deleted cache folder?")
         _autofix(id)
         return None
-
+    else:
+        raise ValueError(f"Unknown serialization method: {serialization_method}")
 
 def _serialize(return_value, file_name):
-    with open(".intpy/cache/{0}".format(_get_file_name(file_name)), 'wb') as file:
-        return pickle.dump(return_value, file, protocol=pickle.HIGHEST_PROTOCOL)
-
+    filename = ".intpy/cache/{0}".format(_get_file_name(file_name))
+    if serialization_method == 'pickle':
+        with open(filename, 'wb') as file:
+            pickle.dump(return_value, file, protocol=pickle.HIGHEST_PROTOCOL)
+    elif serialization_method == 'simplejson':
+        with open(filename, 'w', encoding='latin1') as file:
+            json.dump(return_value, file)
+    elif serialization_method == 'picklejson':
+        with open(filename, 'w', encoding='latin1') as file:
+            json_str = jsonpickle.encode(return_value)
+            file.write(json_str)
+    elif serialization_method == 'HDF5':
+        with h5py.File(filename, 'w') as file:
+            if isinstance(return_value, (np.ndarray, np.generic)):
+                data = return_value
+            else:
+                data = np.array(return_value)
+            dataset = file.create_dataset('dataset', data=data)
+            return dataset
+    else:
+        raise ValueError(f"Unknown serialization method: {serialization_method}")
 
 def _get_cache_data_v01x(id):
     global CONEXAO_BANCO
@@ -112,7 +140,16 @@ def _get_cache_data_v023x(id):
         return DATA_DICTIONARY[id]    
     if(id in NEW_DATA_DICTIONARY):
         return NEW_DATA_DICTIONARY[id]
-    return None
+    else:
+        list_file_name = _get(_get_file_name(id))
+        print(list_file_name)
+        print(len(list_file_name))
+        result = _deserialize(id) if len(list_file_name) == 1 else None
+
+        if(result is not None):
+            NEW_DATA_DICTIONARY[id] = result
+    
+    return result
 
 
 def _get_cache_data_v024x(id):
@@ -181,12 +218,12 @@ def _get_cache_data_v027x(id):
         return DATA_DICTIONARY[id]
     if(id in NEW_DATA_DICTIONARY):
         return NEW_DATA_DICTIONARY[id]
-    
-    list_file_name = _get(_get_file_name(id))
-    result = _deserialize(id) if len(list_file_name) == 1 else None
-    if(result is not None):
-        DATA_DICTIONARY[id] = result
-    return result
+    else:
+        list_file_name = _get(_get_file_name(id))
+        result = _deserialize(id) if len(list_file_name) == 1 else None
+        if(result is not None):
+            DATA_DICTIONARY[id] = result
+        return result
 
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
@@ -287,8 +324,8 @@ def salvarNovosDadosBanco(argsp_v):
     CONEXAO_BANCO.fecharConexao()
 
 
-if(g_argsp_m == ['1d-ad'] or g_argsp_m == ['v022x']
-    or g_argsp_m == ['2d-ad'] or g_argsp_m == ['v023x']):
+if(g_argsp_v == ['1d-ad'] or g_argsp_v == ['v022x']
+    or g_argsp_v == ['2d-ad'] or g_argsp_v == ['v023x']):
     def _populate_cached_data_dictionary():
         list_of_ipcache_files = CONEXAO_BANCO.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
         for ipcache_file in list_of_ipcache_files:
@@ -299,7 +336,7 @@ if(g_argsp_m == ['1d-ad'] or g_argsp_m == ['v022x']
             else:
                 DATA_DICTIONARY[ipcache_file] = result
     _populate_cached_data_dictionary()
-elif(g_argsp_m == ['2d-ad-t'] or g_argsp_m == ['v024x']):
+elif(g_argsp_v == ['2d-ad-t'] or g_argsp_v == ['v024x']):
     def _populate_cached_data_dictionary():
         db_connection = Banco(os.path.join(".intpy", "intpy.db"))
         list_of_ipcache_files = db_connection.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
