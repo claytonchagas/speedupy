@@ -1,3 +1,6 @@
+# Speedupy
+Essa ferramente foi desenvolvida como o objetivo de acelerar o tempo de execução de programas escritos em Python. 
+
 ## Como utilizar?
 
 ### Preparar diretórios
